@@ -1,7 +1,6 @@
 import shlex
 import subprocess
 from collections import defaultdict
-from dataclasses import asdict
 from pathlib import Path
 from typing import DefaultDict, Dict, List, Tuple, Set
 
@@ -104,7 +103,7 @@ def taxonomy_hits_to_df(diamond_hits: DefaultDict[str, List[Taxonomy]]) -> pd.Da
     _df: List[Dict[str, str]] = list()
     for query, hits in diamond_hits.items():
         for hit in hits:
-            _df.append({"Genome": query, **asdict(hit)})
+            _df.append({"Genome": query, **hit.to_dict()})
     return pd.DataFrame(_df)
 
 
@@ -251,14 +250,19 @@ def make_taxa_ambiguous(genome: str, topreps: pd.DataFrame, level: str) -> None:
 
 
 def profile_taxa(diamond_hits: pd.DataFrame, unique_species: Set[str]) -> pd.DataFrame:
-    """_summary_
+    """Profile each query genome's taxonomy. This approach considers whether,
+    for a given taxon, the top taxonomic representative is the same as the
+    overall individual most frequent taxon OR the second most frequent
+    taxonomic representative. If not, those taxons are considered ambiguous,
+    since the true taxon could be multiple taxa.
 
     Args:
-        diamond_hits (pd.DataFrame): _description_
-        unique_species (Set[str]): _description_
+        diamond_hits (pd.DataFrame): dataframe of taxonomy hits for all proteins
+            from the query genomes
+        unique_species (Set[str]): set of all unique query genomes
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: dataframe of taxa predictions for every query genome
     """
     topreps = top_taxa(diamond_hits, genus=False)
     top_indiv_taxa = top_individual_taxa(diamond_hits)
