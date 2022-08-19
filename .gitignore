@@ -1,0 +1,7 @@
+nohup.out
+*.dmnd
+PTT_original.py
+test.ipynb
+*.faa
+__pycache__
+PTT_viral_*/
